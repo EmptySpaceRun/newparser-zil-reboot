@@ -1,0 +1,511 @@
+"DEFS for
+        NEW-PARSER GAME
+    by Max Fog (using the new parser)"
+
+<BEGIN-SEGMENT 0>
+
+<INCLUDE "basedefs" "symbols">
+
+<COMPILATION-FLAG P-DEBUGGING-PARSER <>>
+<COMPILATION-FLAG P-QUOTES <>> ;"I included one if the door is Xed."
+
+<ADD-TELL-TOKENS D *	 <DPRINT .X>>
+
+<DELAY-DEFINITION	CAPITAL-NOUN?>
+<DELAY-DEFINITION	LIT?>
+
+<REPLACE-DEFINITION READ-INPUT
+<ROUTINE READ-INPUT ("AUX" TRM TMP N M FDEF DIR)
+	 <TELL ">">
+	 <PUTB ,P-INBUF 1 0>
+	 <REPEAT ()
+	      <COND ;(,DEMO-VERSION?
+		     <SET TRM <READ-DEMO ,P-INBUF <>>>)
+		    (T
+		     <SET TRM <READ ,P-INBUF <>>>)>
+	      <COND (<EQUAL? .TRM ,PAD0>
+		     <SET TRM ,F10>)
+		    (<AND <G=? .TRM ,PAD1>
+			  <L=? .TRM ,PAD9>>
+		     <SET TRM <+ ,F1 <- .TRM ,PAD1>>>)>
+	      <COND ;(<EQUAL? .TRM ,CLICK1 ,CLICK2> ;"SIGH... When you want it, add it"
+		     <MOUSE-INPUT?>
+		     <COND (<SET DIR <COMPASS-CLICK ,COMPASS-PIC-LOC ,N-HL>>
+			    <READ-INPUT-COMP .DIR>
+			    <RETURN>)>)
+		    (<EQUAL? .TRM 13 10>
+		     <RETURN>)
+		    <IF-P-IMAGES
+            (<AND <SET TMP
+			       <INTBL? .TRM <REST ,FKEYS 2> <GET ,FKEYS 0>>>
+			  <SET FDEF <GET .TMP 1>>> ;"key def"
+		     <SET TRM <ADD-TO-INPUT <REST .FDEF> .TRM <GETB .FDEF 1>>>
+		     <COND (<EQUAL? .TRM 13 10>
+			    <RETURN>)>)>
+		    (T
+		     <SOUND ,S-BEEP>)>>
+	 <SCRIPT-INBUF>
+	 <LEX ,P-INBUF ,P-LEXV>>
+
+<GLOBAL MOUSE-LOC-X <>> ;"X-coordinate of most recent mouse click"
+
+<GLOBAL MOUSE-LOC-Y <>> ;"Y-coordinate of most recent mouse click"
+
+<ROUTINE MOUSE-INPUT? ()
+	 <SETG MOUSE-LOC-X <LOWCORE MSLOCX>>
+	 <SETG MOUSE-LOC-Y <LOWCORE MSLOCY>>>
+
+<ROUTINE SCRIPT-INBUF ("AUX" BUF (CNT 0) (N <GETB ,P-INBUF 1>) CHR)
+	 <DIROUT ,D-SCREEN-OFF>
+	 <SET BUF <REST ,P-INBUF>>
+	 <REPEAT ()
+		 <COND (<IGRTR? CNT .N> <RETURN>)
+		       (ELSE
+			<SET CHR <GETB .BUF .CNT>> 
+			<COND (<AND <G=? .CHR !\a>
+				    <L=? .CHR !\z>>
+			       <PRINTC <- .CHR 32>>)
+			      (ELSE <PRINTC .CHR>)>)>>
+	 <CRLF>
+	 <DIROUT ,D-SCREEN-ON>>>
+
+<REPLACE-DEFINITION GAME-VERB?
+<IF-P-IMAGES
+<CONSTANT GAME-VERB-TABLE
+ <LTABLE V?BRIEF V?QUIT V?RESTART V?RESTORE
+	 V?SAVE V?SCORE V?SCRIPT V?SUPERBRIEF
+	 ;V?TELL V?UNSCRIPT V?VERBOSE V?VERSION V?$VERIFY ;V?FOOTNOTE
+	 V?NOTIFY V?HINT V?COLOR V?TIME V?MAP V?DEFINE V?MODE V?CREDITS
+	 V?$REFRESH>>>
+
+<IFN-P-IMAGES
+<CONSTANT GAME-VERB-TABLE
+ <LTABLE V?BRIEF V?QUIT V?RESTART V?RESTORE
+	 V?SAVE V?SCORE V?SCRIPT V?SUPERBRIEF
+	 ;V?TELL V?UNSCRIPT V?VERBOSE V?VERSION V?$VERIFY ;V?FOOTNOTE
+	 V?NOTIFY V?HINT V?COLOR V?TIME V?CREDITS
+	 V?$REFRESH>>>
+
+<ROUTINE GAME-VERB? ()
+ <COND (<INTBL? ,PRSA <ZREST ,GAME-VERB-TABLE 2> <ZGET ,GAME-VERB-TABLE 0>>
+	<RTRUE>)>
+ ;<COND (<VERB?!- $RANDOM $COMMAND $RECORD $UNRECORD>
+	<RTRUE>)>>>
+
+<REPLACE-DEFINITION	NO-M-WINNER-VERB?
+<DEFMAC NO-M-WINNER-VERB? ()
+	'<EQUAL? ,PRSA ,V?ASK-ABOUT ,V?SRIDE-DIR ,V?SSEARCH-OBJECT-FOR
+		       ,V?SPUT-ON ,V?SSHOW ,V?STHROW ,V?SWRAP ,V?STOUCH>>>
+
+<REPLACE-DEFINITION NOT-HERE-VERB?
+<ROUTINE NOT-HERE-VERB? (V)
+	<EQUAL? .V ,V?WALK-TO ,V?RESEARCH>>>
+
+<REPLACE-DEFINITION	OWNERS
+	<CONSTANT OWNERS
+		  <TABLE (PURE LENGTH)
+             PROTAGONIST
+			 ;[JESTER WALL SAPPHIRE SPENSEWEED POSTER UNICORNS T-OF-B] ;"kept 'cause of examples.">>>
+;<REPLACE-DEFINITION	PARSER-REPORT <CONSTANT PARSER-REPORT <>>>
+
+<REPLACE-DEFINITION	PERSONBIT <CONSTANT PERSONBIT ACTORBIT>>
+<REPLACE-DEFINITION	PLAYER <CONSTANT PLAYER PROTAGONIST>>
+;<REPLACE-DEFINITION	PLURAL <CONSTANT PLURAL PLURALBIT>>
+<REPLACE-DEFINITION	PRINT-INTQUOTE <CONSTANT PRINT-INTQUOTE 0>>
+<DELAY-DEFINITION	REFRESH>
+<REPLACE-DEFINITION	ROOMSBIT <CONSTANT ROOMSBIT KLUDGEBIT>>
+
+<REPLACE-DEFINITION SEE-VERB?
+<ROUTINE SEE-VERB? ()
+	<EQUAL? ,PRSA ,V?CHASTISE ,V?COUNT ,V?EXAMINE ,V?FIND ,V?TAKE
+		      ;,V?INVENTORY ,V?LOOK ,V?LOOK-BEHIND ,V?LOOK-DOWN
+		      ,V?LOOK-INSIDE ,V?LOOK-UNDER ,V?READ ,V?SEARCH>>>
+
+<COMPILATION-FLAG P-APOSTROPHE-BREAKS-WORDS <>>
+<REPLACE-DEFINITION	SIBREAKS <SETG20 SIBREAKS ".,\"!?">>
+
+<REPLACE-DEFINITION	SETUP-ORPHAN-NP <CONSTANT SETUP-ORPHAN-NP 0>>
+
+<REPLACE-DEFINITION	SPEAKING-VERB?
+<ROUTINE SPEAKING-VERB? ("OPT" (A ,PRSA))
+ <COND (<EQUAL? .A ;,V?ANSWER ,V?ASK-ABOUT ,V?ASK-FOR ,V?HELLO
+		   ,V?NO ;,V?REPLY ,V?TELL ,V?TELL-ABOUT ,V?YES>
+	<RTRUE>)>>>
+
+<ROUTINE APPLE? ()
+	 <COND (<EQUAL? <LOWCORE INTID> ,APPLE-2E ,APPLE-2C ,APPLE-2GS>
+		<RTRUE>)
+	       (T
+		<RFALSE>)>>
+
+<REPLACE-DEFINITION STATUS-LINE
+
+<IF-P-IMAGES ;"call v-$refresh to during game if want to clear junk"
+<DEFINE UPDATE-STATUS-LINE ("AUX" X Y)
+	 <SCREEN ,S-WINDOW>
+	 <FONT 4> ;"non-proportional"
+	 <COND (<AND <EQUAL? <LOWCORE INTID> ,IBM>
+		     <NOT <FLAG-ON? ,F-COLOR>>>
+		<HLIGHT ,H-INVERSE>)
+	       (<NOT ,BORDER-ON>
+		<HLIGHT ,H-INVERSE>)
+	       (,BORDER-ON
+		<CURSET <- <GET ,SL-LOC-TBL 0> 1> <GET ,SL-LOC-TBL 1>>
+		<COLOR ,DEFAULT-FG -1>)>
+	 <COND (<NOT <EQUAL? ,HERE ,OLD-HERE>> ;"Print loc if it's a new loc"
+		<DRAW-NEW-HERE>)>
+	 <COND (<NOT <EQUAL? <GETP ,HERE ,P?YEAR> ,OLD-YEAR>>
+		<DRAW-NEW-REGION>)>
+	 <SET Y <+ <GET ,SL-LOC-TBL 0> ,FONT-Y>>
+	 <SET X <+ <GET ,SL-LOC-TBL 1> <* ,FONT-X 8>>>
+	 <CURSET .Y .X>
+	 <PRINT-SPACES 5>
+	 <CURSET .Y .X>
+	 <PRINTN ,MOVES>
+	 <COND (<NOT <EQUAL? ,SCORE ,SL-SCORE>> ;"score changed?"
+	        <DRAW-NEW-SCORE>)>
+	 <COND (<AND <EQUAL? <LOWCORE INTID> ,IBM>
+		     <NOT <FLAG-ON? ,F-COLOR>>>
+		<HLIGHT ,H-NORMAL>
+		<COND (<AND ,BORDER-ON ,COMPASS-CHANGED>
+		       <DRAW-NEW-COMP>)>)
+	       (,BORDER-ON
+		<COLOR ,DEFAULT-FG ,DEFAULT-BG>
+		<COND (,COMPASS-CHANGED
+		       <DRAW-NEW-COMP>)>)
+	       (<NOT ,BORDER-ON>
+		<HLIGHT ,H-NORMAL>)>
+	 <FONT 1> ;"proportional"
+	 <SCREEN ,S-TEXT>
+	 <RFALSE>>
+
+<ROUTINE PICINF-PLUS-ONE (PIC)
+	 <PICINF .PIC ,PICINF-TBL>
+	 <PUT ,PICINF-TBL 0 <+ <GET ,PICINF-TBL 0> 1>>
+	 <PUT ,PICINF-TBL 1 <+ <GET ,PICINF-TBL 1> 1>>>>
+
+<IFN-P-IMAGES
+
+<CONSTANT SCORE-TEXT 21>
+
+<DEFINE UPDATE-STATUS-LINE ()
+	 <COND (,DO-WINDOW
+            <CREATE-WINDOW ,DO-WINDOW>
+            <STOP>
+            <RTRUE>)>
+     <SCREEN ,S-WINDOW>
+	 <HLIGHT ,H-INVERSE>
+	 <COND (<NOT <EQUAL? ,HERE ,OLD-HERE>>
+		<SETG OLD-HERE ,HERE>
+		<CURSET 1 1>		;"Erase old desc."
+		<ERASE 1>	;<PRINT-SPACES <LOWCORE SCRH>>
+		<CURSET 1 1>
+		<TELL "  " D ,HERE>)>
+     <CURSET 1 <- <LOWCORE SCRH>
+	 		      <+ ,SCORE-TEXT
+		       		 <+ <DIGITS ,SCORE> <DIGITS ,MOVES>>>>>
+	 <TELL "Score: " N ,SCORE "    Moves: " N ,MOVES>
+	 <HLIGHT ,H-NORMAL>
+	 <SCREEN ,S-TEXT>
+	 <RTRUE>>
+
+<DEFINE DIGITS (N "AUX" (D 1))
+   <COND (<L? .N 0>
+	  <SET D <+ 1 .D>>	;"negative sign"
+	  <SET N <- 0 .N>>)>
+   <REPEAT ()
+	<SET N </ .N 10>>
+	<COND (<0? .N>
+	       <RETURN>)
+	      (T
+	       <SET D <+ 1 .D>>)>>
+   .D>>
+
+<ROUTINE PRINT-SPACES (CNT)
+	 <REPEAT ()
+		 <COND (<L? <SET CNT <- .CNT 1>> 0>
+			<RETURN>)
+		       (T
+			<PRINTC 32>)>>>
+>
+
+<REPLACE-DEFINITION TELL-TOO-DARK
+    <ROUTINE TELL-TOO-DARK ()
+        <SETG P-CONT -1> ;<RFATAL>
+        <TELL ,TOO-DARK>
+        <COND (<AND <EQUAL? ,PRSA ,V?LOOK>
+                    <PROB 70>>
+               <TELL " You might end up damaging yourself... or worse.">
+               ;<GRUE-PIT-WARNING>)>
+    	<CRLF>>>
+
+<COMPILATION-FLAG P-TITLE-ABBRS T>
+
+<REPLACE-DEFINITION TITLE-ABBR?
+<DEFMAC TITLE-ABBR?!- ('WRD) <FORM EQUAL? .WRD ',W?D ',W?A>>>
+
+<DELAY-DEFINITION	VERB-ALL-TEST>
+<REPLACE-DEFINITION	YES? <CONSTANT YES? 0>>
+
+<COMPILATION-FLAG P-PS-ADV T>
+<COMPILATION-FLAG P-PS-COMMA T>
+<COMPILATION-FLAG P-PS-OFWORD T>
+;<COMPILATION-FLAG P-PS-THEWORD T>
+<COMPILATION-FLAG P-PS-QUOTE T>
+
+<TERMINALS (VERB 6) (NOUN 4) (ADJ 5)	;"keep these three in order! -- SWG"
+ 	   (DIR 1)
+ 	   (PARTICLE 3) (PREP 2)	;"keep these two in order! -- SWG"
+	   ASKWORD	;7
+	   OFWORD ;ARTICLE QUOTE COMMA
+	   ADV QUANT MISCWORD>
+
+<PROPDEF DIRECTIONS <>
+	 (DIR TO R:ROOM =
+	  (UEXIT 1)	;442	#SEMI "UNCONDITIONAL EXIT"
+	  (REXIT <ROOM .R>)	#SEMI "TO ROOM")
+	 (DIR S:STRING =
+	  (NEXIT 2)	;108	#SEMI "IMPOSSIBLE EXIT"
+	  (NEXITSTR <STRING .S>) #SEMI "FAILURE MESSAGE")
+	 (DIR SORRY S:STRING =
+	  (NEXIT 2)		#SEMI "IMPOSSIBLE EXIT"
+	  (NEXITSTR <STRING .S>) #SEMI "FAILURE MESSAGE")
+	 (DIR PER F:FCN =
+	  (FEXIT 3)	;60	#SEMI "CONDITIONAL EXIT"
+	  (FEXITFCN <WORD .F>)	#SEMI "PER FUNCTION"
+	  <BYTE 0>)
+	 (DIR TO R:ROOM IF F:GLOBAL "OPT" ELSE S:STRING =
+	  (CEXIT 4)	;9	#SEMI "CONDITIONAL EXIT"
+	  (REXIT <ROOM .R>)	#SEMI "TO ROOM"
+	  (CEXITFLAG <GLOBAL .F>) #SEMI "IF FLAG IS TRUE"
+	  (CEXITSTR <STRING .S>) #SEMI "FAILURE MESSAGE")
+	 (DIR TO R:ROOM IF O:OBJECT IS OPEN "OPT" ELSE S:STRING =
+	  (DEXIT 5)	;17	#SEMI "CONDITIONAL EXIT"
+	  (DEXITOBJ <OBJECT .O>) #SEMI "IF DOOR IS OPEN"
+	  (DEXITSTR <STRING .S>) #SEMI "FAILURE MESSAGE"
+	  (DEXITRM <ROOM .R>)	#SEMI "TO ROOM")>
+
+<DIRECTIONS	NORTH NE EAST SE SOUTH SW WEST NW UP DOWN IN OUT>
+
+<OBJECT INTDIR
+	(LOC GLOBAL-OBJECTS)
+	(DESC "direction")
+	(SYNONYM NORTH NE EAST SE SOUTH SW WEST NW ;UP ;DOWN)>
+
+;<REPLACE-DEFINITION GET-DEXITOBJ
+<ROUTINE GET-DEXITOBJ (PT) <ZGET <REST .PT> ,DEXITOBJ>>>
+
+;<CONSTANT M-OBJDESC? 10>
+
+<ZSTART GO> ;"else, ZIL gets confused between verb-word GO and routine GO"
+
+<CONSTANT S-FULL 7>
+
+<ROUTINE CLOCKER ("AUX" E TICK RTN (FLG <>) (Q? <>) OWINNER)
+	 <COND (,CLOCK-WAIT
+		<SETG CLOCK-WAIT <>>
+		<RFALSE>)
+	       ;(,TIME-STOPPED
+		;"don't run interrupts, but do increment moves"
+		<SETG MOVES <+ ,MOVES 1>>
+		<RFALSE>)>
+	 <SETG CLOCK-HAND <REST ,C-TABLE ,C-INTS>>
+	 <SET E <REST ,C-TABLE ,C-TABLELEN>>
+	 <SET OWINNER ,WINNER>
+	 <SETG WINNER ,PROTAGONIST>
+	 <REPEAT ()
+		 <COND (<EQUAL? ,CLOCK-HAND .E>
+			;<SETG CLOCK-HAND .E>
+			<SETG MOVES <+ ,MOVES 1>>
+			<SETG WINNER .OWINNER>
+			<RETURN .FLG>)
+		       (<NOT <ZERO? <GET ,CLOCK-HAND ,C-RTN>>>
+			<SET TICK <GET ,CLOCK-HAND ,C-TICK>>
+			<COND (<L? .TICK -1>
+			       <PUT ,CLOCK-HAND ,C-TICK <- -3 .TICK>
+							;<- <- .TICK> 3>>
+			       <SET Q? ,CLOCK-HAND>)
+			      (<NOT <ZERO? .TICK>>
+			       <COND (<G? .TICK 0>
+				      <SET TICK <- .TICK 1>>
+				      <PUT ,CLOCK-HAND ,C-TICK .TICK>)>
+			       <COND (<NOT <ZERO? .TICK>>
+				      <SET Q? ,CLOCK-HAND>)>
+			       <COND (<NOT <G? .TICK 0>>
+				      <SET RTN
+					   <IFFLAG (IN-ZILCH
+						    <GET ,CLOCK-HAND ,C-RTN>)
+						   (T
+						    <NTH ,CLOCK-HAND
+							 <+ <* ,C-RTN 2>
+							    1>>)>>
+				      <COND (<ZERO? .TICK>
+					     <PUT ,CLOCK-HAND ,C-RTN 0>)>
+				      <COND (<APPLY .RTN>
+					     <SET FLG T>)>
+				      <COND (<AND <NOT .Q?>
+						  <NOT
+						   <ZERO?
+						    <GET ,CLOCK-HAND
+							 ,C-RTN>>>>
+					     <SET Q? T>)>)>)>)>
+		 <SETG CLOCK-HAND <REST ,CLOCK-HAND ,C-INTLEN>>
+		 <COND (<NOT .Q?>
+			<SETG C-INTS <+ ,C-INTS ,C-INTLEN>>)>>>
+
+
+
+
+
+<ROUTINE GO ()
+	 <IF-P-IMAGES <SETUP-SCREEN>>
+	 <SETG FG-COLOR <LOWCORE (CLRWRD 1)>>
+	 <SETG BG-COLOR <LOWCORE (CLRWRD 0)>>
+	 <COND (<AND <EQUAL? <LOWCORE INTID> ,IBM>
+		     <FLAG-ON? ,F-COLOR>>
+		<SETG DEFAULT-FG 2>
+		<SETG DEFAULT-BG 9>
+		<DEFAULT-COLORS>)
+	       (<EQUAL? <LOWCORE INTID> ,AMIGA>
+		<SETG DEFAULT-FG 2>
+		<SETG DEFAULT-BG 10>
+		<DEFAULT-COLORS>)>
+	 <IF-P-IMAGES
+	 <COND (,DEMO-VERSION?
+		<SETG HOLEY-SLAB <GET ,SLAB-TABLE <- <RANDOM 7> 1>>>
+		<SLIDE-SHOW>
+		<AGAIN>)>>
+	 <COND (<APPLE?>
+		<TELL "Do you want to restore a saved game? (Type y or n) >">
+		<COND (<Y?>
+		       <CRLF>
+		       <RESTORE>
+		       <TELL CR "Restore failed. ">
+		       <HIT-ANY-KEY>
+		       <CRLF>
+		       <AGAIN>)>)>
+	 <IF-P-IMAGES
+     <SETG CURRENT-SPLIT ,TEXT-WINDOW-PIC-LOC>
+	 <SETG CURRENT-BORDER ,CASTLE-BORDER>>
+
+     ;"QUEUES go here"
+
+	 <V-$REFRESH>
+	 <CRLF>
+	 <IF-P-IMAGES
+     <MARGINAL-PIC ,PROLOGUE-LETTER>
+	 <DIROUT ,D-SCREEN-OFF>>
+	 <TELL "W"> ;"so transcript doesn't say NOTHER FRANTIC DAY..."
+	 <IF-P-IMAGES
+     <DIROUT ,D-SCREEN-ON>>
+
+	 <TELL
+"ELL THAT WAS quick! People are suddenly trying to kill you - or that's what you think, at least.">
+	 <CRLF>
+
+	 <IF-P-IMAGES <CLEAR-CRCNT>> ;"in case illuminated letter is taller than intro"
+	 
+     <CRLF>
+	 <V-LOOK>
+	 ;<I-PROLOGUE>
+	 ;<I-GIVE-OBJECT>
+	 <MAIN-LOOP>
+	 <AGAIN>>
+
+
+
+
+
+<GLOBAL DO-WINDOW <>>
+
+<IF-P-QUOTES
+<ROUTINE CREATE-WINDOW (TABLE "OPTIONAL" (MARGIN 0)
+		       "AUX" (X <>) (Y 4) (I 2) WIDTH LINES STR PLINES)
+
+	 <SET LINES <GET .TABLE 0>>
+	 <SET PLINES .LINES>
+	 <SET WIDTH <GET .TABLE 1>>
+	 <COND ;(<G? .WIDTH <GETB 0 33>>
+		<TELL "[Window too wide!]" CR>
+		<RTRUE>)
+	       (<ZERO? .MARGIN>
+		<SET MARGIN </ <- <LOWCORE SCRH> .WIDTH> 2>>)> ; "Center"
+
+	 <SPLIT <+ .LINES 4>> ; "Set up the window."
+	 <SCREEN ,S-WINDOW>
+	 <BUFOUT <>>
+	 <HLIGHT ,H-INVERSE>
+
+	 <CURSET .Y .MARGIN>
+	 <PRINT-SPACES .WIDTH>
+
+	 <REPEAT ()
+		 <INC Y>
+		 <CURSET .Y .MARGIN>
+		 <DEC LINES>
+		 <COND (<ZERO? .LINES>
+			<PRINT-SPACES .WIDTH>
+			<RETURN>)>
+		 <SET STR <GET .TABLE .I>>
+		 <COND (<ZERO? .STR>
+			<PRINT-SPACES .WIDTH>)
+		       (T
+			<PRINTC 32>
+            ;<COND (<AND <G? .LINES 5>
+				     <=? .WIDTH 27>
+                     <=? .I 2>>
+			    <SET X T>
+			    <HLIGHT ,H-ITALIC>)>           ;"If you want an italic thing"
+			<TELL .STR>
+			;<COND (.X
+			    <SET X <>>
+			    <HLIGHT ,H-NORMAL>
+                <HLIGHT ,H-INVERSE>)>          ;"Returns italics to normal"
+			<PRINTC 32>)>
+		 <INC I>>
+
+	 <HLIGHT ,H-NORMAL>
+	 <SCREEN ,S-TEXT>
+	 <BUFOUT T>
+	 <SPLIT 1>
+
+	 ; "Send window to printer."
+	 <DIROUT ,D-SCREEN-OFF>
+	 <SET I 2>
+	 <CRLF>
+	 <TELL "[">
+	 <REPEAT ()
+		 <DEC PLINES>
+		 <COND (<ZERO? .PLINES>
+			<RETURN>)>
+		 <SET STR <GET .TABLE .I>>
+		 <COND (<NOT <ZERO? .STR>>
+			<COND (<NOT <EQUAL? .I 2>>
+			       <PRINTC 32>)>
+			<TELL .STR>
+			<COND (<EQUAL? .PLINES 1>
+			       <TELL "]">)>)>
+		 <CRLF>
+		 <INC I>>
+	 <CRLF>
+	 <DIROUT ,D-SCREEN-ON>
+	 <RTRUE>>
+
+
+
+<CONSTANT Q-OPPENHEIMER 0>
+
+<GLOBAL QUOTES:TABLE
+    <PTABLE
+        <PLTABLE 29
+            "I am become death,         "
+            "the destroyer of worlds.    "
+            0
+            "    --J. Robert Oppenheimer">>>      ;"LOT WEIRDER THAN it seems. You'll need to tweak your own quotes."
+>
+
+
+
+
+
+<END-SEGMENT>
