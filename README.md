@@ -14,3 +14,9 @@ no idea. For that reason, I'd say one thing: PLEASE DO NOT USE THEM.
 the DEFS file) are functional, so you can set the P-QUOTES compilation flag to T and
 edit the QUOTES at the bottom to your liking. I also have left messages around the
 code to direct you and help you. Otherwise, enjoy!
+
+   NOTE: Some of the files are made for Windows. You may have to change the .bat and
+BIN files to work on another device. Attached is a compiled version of the current
+files, created in .z5, to give you an idea of what can be done. (EG: try to do
+>ASK MYSELF ABOUT GREEN ROOM - which is an object not in the current oart of the map.
+It works!)
